@@ -8,6 +8,7 @@ import {
   StyleSheet,
   PDFDownloadLink,
   Font,
+  Link,
 } from "@react-pdf/renderer";
 import dynamic from "next/dynamic";
 
@@ -164,6 +165,10 @@ const styles = StyleSheet.create({
     fontFamily: "Times-Roman",
     color: "#303030",
   },
+  link: {
+    color: "#0000FF",
+    textDecoration: "underline",
+  },
 });
 
 // Resume Data Initial State
@@ -173,7 +178,12 @@ const INITIAL_RESUME_DATA = {
     title:
       "Full Stack Developer | Spring Boot | Microservices | React | Next.js | Nest.js | AI Agents",
     contact:
-      "Hyderabad, India | Phone: +91 7036285961 | Email: eswar.crypto.tech@gmail.com | LinkedIn | GitHub | Portfolio",
+      "Hyderabad, India | Phone: +91 7036285961 | Email: eswar.crypto.tech@gmail.com",
+    links: {
+      linkedin: "https://linkedin.com/in/eswararaobeta",
+      github: "https://github.com/eswararaobeta",
+      portfolio: "https://eswarb.vercel.app",
+    },
   },
   summary:
     "Full Stack Developer with 2+ years of experience building scalable, secure systems using Spring Boot, NestJS, and microservices. Experienced in integrating AI-powered solutions using modern AI/LLM APIs. Proficient in React.js, Next.js, and Tailwind CSS to deliver production-ready full-stack applications in agile environments.",
@@ -203,6 +213,7 @@ const INITIAL_RESUME_DATA = {
       company: "Toucan Payments LLC",
       role: "Software Engineer",
       duration: "2023 - Present",
+      link: "https://toucanpayments.com",
       points: [
         "Developed scalable microservices using Spring Boot for core Payments and Card Management systems, improving modularity and system design.",
         "Implemented secure API gateways using Spring Security and Spring Cloud Gateway, ensuring robust authentication, authorization.",
@@ -218,6 +229,7 @@ const INITIAL_RESUME_DATA = {
       name: "Resume Maker",
       role: "Next.js Project",
       duration: "Feb 2026 - Present",
+      link: "https://github.com/eswararaobeta/resume-maker",
       points: [
         "Built a real-time resume builder with live PDF preview using React-PDF and Next.js.",
         "Implemented dynamic layouts and custom styling options for enhanced user customization.",
@@ -230,6 +242,7 @@ const INITIAL_RESUME_DATA = {
       name: "AI-Powered Chat Application",
       role: "React Native Project",
       duration: "Jan 2025 - Feb 2026",
+      link: "https://github.com/eswararaobeta/ai-chat-app",
       points: [
         "Developed a cross-platform mobile chat application with real-time messaging using WebSocket and Firebase.",
         "Integrated OpenAI API for smart replies and AI-driven content moderation to enhance user safety.",
@@ -242,6 +255,7 @@ const INITIAL_RESUME_DATA = {
       name: "E-Commerce Platform",
       role: "Spring Boot Project",
       duration: "Aug 2024 - Dec 2024",
+      link: "https://github.com/eswararaobeta/ecommerce-platform",
       points: [
         "Built a scalable e-commerce backend with microservices architecture.",
         "Implemented secure payment processing using Stripe API.",
@@ -289,6 +303,30 @@ const ResumeDocument = ({ data }: { data: any }) => (
         </Text>
         <Text style={styles.headerContactText}>
           {data.header?.contact || "Contact Info"}
+          {data.header?.links?.linkedin && (
+            <Text>
+              {" | "}
+              <Link src={data.header.links.linkedin} style={styles.link}>
+                LinkedIn
+              </Link>
+            </Text>
+          )}
+          {data.header?.links?.github && (
+            <Text>
+              {" | "}
+              <Link src={data.header.links.github} style={styles.link}>
+                GitHub
+              </Link>
+            </Text>
+          )}
+          {data.header?.links?.portfolio && (
+            <Text>
+              {" | "}
+              <Link src={data.header.links.portfolio} style={styles.link}>
+                Portfolio
+              </Link>
+            </Text>
+          )}
         </Text>
       </View>
 
@@ -319,6 +357,14 @@ const ResumeDocument = ({ data }: { data: any }) => (
             <View style={styles.experienceContent}>
               <Text>
                 {exp.role} | {exp.company}
+                {exp.link && (
+                  <Text>
+                    {" | "}
+                    <Link src={exp.link} style={styles.link}>
+                      Link
+                    </Link>
+                  </Text>
+                )}
               </Text>
               <Text>{exp.duration}</Text>
             </View>
@@ -338,6 +384,14 @@ const ResumeDocument = ({ data }: { data: any }) => (
             <View style={styles.experienceContent}>
               <Text style={styles.projectName}>
                 {project.name} | {project.role}
+                {project.link && (
+                  <Text style={{ fontWeight: "normal" }}>
+                    {" | "}
+                    <Link src={project.link} style={styles.link}>
+                      Link
+                    </Link>
+                  </Text>
+                )}
               </Text>
               <Text>{project.duration}</Text>
             </View>
