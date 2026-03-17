@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
     if (!GEMINI_API_KEY) {
       return NextResponse.json(
-        { error: "Gemini API key not configured" },
+        { error: "Something went wrong." },
         { status: 500 }
       );
     }
@@ -65,9 +65,8 @@ Return ONLY valid JSON, no markdown, no explanation, no code blocks. Just the ra
     );
 
     if (!response.ok) {
-      const errText = await response.text();
       return NextResponse.json(
-        { error: `Gemini API error: ${errText}` },
+        { error: "Something went wrong." },
         { status: response.status }
       );
     }
@@ -89,8 +88,8 @@ Return ONLY valid JSON, no markdown, no explanation, no code blocks. Just the ra
   } catch (error) {
     console.error("Generate resume error:", error);
     return NextResponse.json(
-      { error: (error as Error).message || "Something went wrong" },
-      { status: 500 }
-    );
+        { error: "Something went wrong." },
+        { status: 500 }
+      );
   }
 }
