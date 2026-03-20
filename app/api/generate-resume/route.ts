@@ -24,58 +24,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const prompt = `You are a world-class resume writer, ATS optimization specialist, and career coach with 15+ years of experience helping candidates land roles at FAANG, top startups, and Fortune 500 companies.
+    const prompt = `You are a world-class resume writer and ATS optimization specialist.
+Your goal: Transform the user's existing resume into a HIGH-ATS-SCORE resume JSON based ONLY on the provided Job Description (JD) and the user's source resume.
 
-Your goal: Generate a HIGH-ATS-SCORE resume JSON that will pass Applicant Tracking Systems and impress human recruiters.
+=== CRITICAL CONSTRAINTS (MANDATORY) ===
 
-=== ATS OPTIMIZATION RULES (MANDATORY) ===
+1. JSON STRUCTURE (STRICT MANDATORY)
+   - You MUST return a JSON object with this EXACT top-level structure: "header", "summary", "skills", "experience", "projects", "education".
+   - "header": Must contain "name", "title", "contact", and a "links" object ("linkedin", "github", "portfolio").
+   - "summary": A single string (max 3 lines).
+   - "skills": An array of objects: { "label": string, "value": string }.
+   - "experience": An array of objects: { "company": string, "role": string, "duration": string, "link": string, "points": string[], "techStack": string }.
+   - "projects": An array of objects: { "name": string, "role": string, "duration": string, "link": string, "points": string[], "techStack": string }.
+   - "education": A single OBJECT (not an array): { "college": string, "degree": string, "duration": string }.
 
-1. KEYWORD SATURATION
-   - Mirror exact keywords, phrases, and technologies from the job description throughout summary, skills, experience, and project bullet points.
-   - Use the exact job title or close variants in the summary.
-   - Never paraphrase job description tech stack — use the exact terms (e.g., if JD says "Apache Kafka", use "Apache Kafka", not "message queue").
+2. DATA CLEANING & HYGIENE
+   - NO NEWLINES: DO NOT include newline characters (\n) or any other escape characters inside any JSON string values.
+   - NO "N/A" or "NA": If information is missing, use an empty string ("") or null.
+   - BULLET LIMIT: In Experience and Projects, provide EXACTLY 2-3 high-impact, single-line bullet points. Do NOT provide more than 3.
 
-2. QUANTIFY EVERYTHING — NO VAGUE BULLETS ALLOWED
-   - Every bullet point in experience and projects MUST include at least one number, percentage, scale, or time metric.
-   - Examples of good quantification:
-     * "Reduced API response time by 42% by implementing Redis caching across 12 microservices"
-     * "Led migration of 3 legacy monoliths to microservices, cutting deployment time from 45 min to 8 min"
-     * "Processed 2M+ transactions/day with 99.95% uptime using Spring Boot and Apache Kafka"
-     * "Improved test coverage from 34% to 87%, reducing post-release defects by 60%"
-     * "Delivered 5 full-stack features in Q3, contributing to a 28% reduction in churn"
-   - If the original resume lacks numbers, INVENT REALISTIC, BELIEVABLE metrics consistent with the role, company size, and tech stack described.
-   - Aim for 2–3 quantified achievements per job/project.
+3. STRICT GROUNDING & NO HALLUCINATIONS (CRITICAL)
+   - ONLY extract projects and experience explicitly listed under their respective headings in the source PDF. 
+   - DO NOT rename, replace, or substitute projects. If the source says "Resume Maker", the output must say "Resume Maker". 
+   - DO NOT pull project names from your internal knowledge or from keywords in the summary/header. 
+   - ZERO TOLERANCE for hallucinations: "Agent Wizard", "Card Management System", and "AI OCR" are NOT in the source and MUST NOT appear in the output unless they are explicitly in the PROJECTS section.
 
-3. STRONG ACTION VERBS
-   - Start every bullet with a powerful, specific action verb: Architected, Engineered, Spearheaded, Optimized, Orchestrated, Automated, Delivered, Reduced, Improved, Scaled, Deployed, Integrated, Migrated, Streamlined, Championed, etc.
-   - NEVER start a bullet with: "Worked on", "Helped with", "Assisted", "Was responsible for", "Part of".
+4. HYPERLINK EXTRACTION (CRITICAL)
+   - You are processing a PDF. For words like "Link", "LinkedIn", "GitHub", and "Portfolio", you MUST extract the underlying embedded URL from the PDF's link/annotation layer.
+   - If a URL is found in the text (e.g., https://...), use it.
+   - If a word is hyperlinked in the PDF, you MUST capture that URL.
+   - Ensure these URLs are mapped to the correct "link" or "links" fields in the JSON.
+ 
+5. NO EXAMPLE DATA LEAKAGE
+   - Ignore all placeholder values (e.g., "Toucan Payments", "Resume Maker") in the template. ONLY use user data from the PDF.
 
-4. SUMMARY — EXECUTIVE PITCH (STRICT)
-   - 2–3 sentences MAXIMUM. No more. No exceptions.
-   - Must include: years of experience, top 2–3 skills directly from JD, and clear career positioning aligned to the role.
-   - Use the job title from the JD in the first sentence.
-   - Example of a good summary (2 sentences): "Full Stack Developer with 3+ years building scalable Spring Boot microservices and React.js applications. Experienced in integrating Gemini AI and LangChain to deliver production-grade AI-powered systems in agile environments."
+6. ATS OPTIMIZATION & EXECUTIVE APPEAL
+   - Write like a top-tier career coach. Mirror JD keywords. 
+   - HEADER TITLE: Create a pipe-separated tagline with at least 4 relevant roles/skills from the JD.
+   - QUANTIFY everything with realistic, believable metrics.
+   - Start every bullet with a powerful action verb.
 
-5. HEADER TITLE — CONCISE TAGLINE
-   - The "title" field is a pipe-separated tagline (e.g. "Role | Tech1 | Tech2 | Tech3 | Tech4").
-   - Maximum 5 items separated by " | ". No more than 5 segments.
-   - Lead with the target job role, then the 4 most relevant technologies from the JD.
-
-5. SKILLS — ATS KEYWORD MATCH
-   - Reorder skill categories to put JD-relevant technologies first.
-   - Add any skills explicitly mentioned in the JD that the candidate plausibly has (based on their experience), without fabricating entirely new expertise.
-
-6. STRUCTURE RULES
-   - MAINTAIN the EXACT JSON structure as the provided current JSON (same keys, same nesting, same section names).
-   - Do NOT add or remove top-level sections that are not in the original JSON.
-   - Preserve all real personal information: name, contact details, company names, dates, project names, links.
+7. NO MARKDOWN FORMATTING
+   - All JSON string values must be plain text. No bolding (**), no italics, no markdown syntax.
+   - All text must be plain text only.
 
 === INPUT DATA ===
 
 JOB DESCRIPTION:
 ${jobDescription}
 
-CURRENT JSON STRUCTURE (preserve this exact format):
+JSON TEMPLATE (preserve this structure, ignore example values):
 ${existingJson}
 
 === OUTPUT INSTRUCTIONS ===

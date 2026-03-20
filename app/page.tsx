@@ -138,10 +138,17 @@ const pdfStyles = StyleSheet.create({
   },
   bullet: { width: 10, fontSize: 12, marginTop: 1 },
   bulletText: { flex: 1, fontSize: 12 },
-  techStack: {
+  techStackLabel: {
     marginTop: 3,
     fontSize: 12,
+    fontWeight: "bold",
+    color: "#000000",
+    fontFamily: "Times-Roman",
+  },
+  techStackValue: {
+    fontSize: 12,
     fontStyle: "italic",
+    fontWeight: "normal",
     color: "#303030",
     fontFamily: "Times-Roman",
   },
@@ -157,7 +164,7 @@ const pdfStyles = StyleSheet.create({
     fontFamily: "Times-Roman",
     color: "#303030",
   },
-  link: { color: "#0000FF", textDecoration: "underline" },
+  link: { color: "#2563EB", textDecoration: "underline" },
 });
 
 // ============================================================
@@ -331,12 +338,20 @@ const ResumeDocument = ({ data }: { data: any }) => {
                 <View style={pdfStyles.experienceContent}>
                   <Text style={pdfStyles.projectName}>
                     {exp.role} | {exp.company}
-                    {exp.link && <Text style={{ fontWeight: "normal" }}>{" | "}<Link src={exp.link} style={pdfStyles.link}>Link</Link></Text>}
+                    {exp.link && (
+                      <Text style={{ fontWeight: "normal" }}>
+                        {" | "}<Link src={exp.link} style={pdfStyles.link}>Project Link</Link>
+                      </Text>
+                    )}
                   </Text>
                   <Text>{exp.duration}</Text>
                 </View>
-                {exp.points?.map((p: string, j: number) => <BulletPoint key={j} text={p} />)}
-                <Text style={pdfStyles.techStack}>Tech Stack: {exp.techStack}</Text>
+                {exp.points?.map((p: string, j: number) => p && <BulletPoint key={j} text={p} />)}
+                {exp.techStack && (
+                  <Text style={pdfStyles.techStackLabel}>
+                    Tech Stack: <Text style={pdfStyles.techStackValue}>{exp.techStack}</Text>
+                  </Text>
+                )}
               </View>
             ))}
           </View>
@@ -351,12 +366,20 @@ const ResumeDocument = ({ data }: { data: any }) => {
                 <View style={pdfStyles.experienceContent}>
                   <Text style={pdfStyles.projectName}>
                     {proj.name} | {proj.role}
-                    {proj.link && <Text style={{ fontWeight: "normal" }}>{" | "}<Link src={proj.link} style={pdfStyles.link}>Link</Link></Text>}
+                    {proj.link && (
+                      <Text style={{ fontWeight: "normal" }}>
+                        {" | "}<Link src={proj.link} style={pdfStyles.link}>Project Link</Link>
+                      </Text>
+                    )}
                   </Text>
                   <Text>{proj.duration}</Text>
                 </View>
-                {proj.points?.map((p: string, j: number) => <BulletPoint key={j} text={p} />)}
-                <Text style={pdfStyles.techStack}>Tech Stack: {proj.techStack}</Text>
+                {proj.points?.map((p: string, j: number) => p && <BulletPoint key={j} text={p} />)}
+                {proj.techStack && (
+                  <Text style={pdfStyles.techStackLabel}>
+                    Tech Stack: <Text style={pdfStyles.techStackValue}>{proj.techStack}</Text>
+                  </Text>
+                )}
               </View>
             ))}
           </View>
@@ -367,8 +390,10 @@ const ResumeDocument = ({ data }: { data: any }) => {
           <View style={pdfStyles.section}>
             <SectionHeader title="EDUCATION" />
             <View style={pdfStyles.experienceContent}>
-              <Text>{data.education?.college}</Text>
-              <Text style={pdfStyles.educationDegree}>{data.education?.degree}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={pdfStyles.projectName}>{data.education?.college}</Text>
+                <Text style={pdfStyles.educationDegree}>{data.education?.degree}</Text>
+              </View>
               <Text>{data.education?.duration}</Text>
             </View>
           </View>
@@ -640,7 +665,7 @@ export default function Home() {
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-linear-to-br from-violet-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-violet-900/60 flex-shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-linear-to-br from-violet-500 via-purple-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-violet-900/60 flex-shrink:0">
                     <Zap className="w-5 h-5 text-white" />
                   </div>
                   <div>
