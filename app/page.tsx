@@ -176,7 +176,7 @@ const INITIAL_RESUME_DATA = {
     title:
       "Full Stack Developer | Spring Boot | Microservices | React | Next.js | Nest.js | AI Agents",
     contact:
-      "Hyderabad, India | Phone: +91 7036285961 | Email: eswar.crypto.tech@gmail.com",
+      "Hyderabad, India | Phone:7036285961 | Email: eswar.crypto.tech@gmail.com",
     links: {
       linkedin: "https://linkedin.com/in/eswararaobeta",
       github: "https://github.com/eswararaobeta",
