@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   Document,
   Page,
@@ -25,6 +25,22 @@ import {
   Key,
   Eye,
   EyeOff,
+  ChevronDown,
+  ChevronRight,
+  Code,
+  Layers,
+  Sparkles,
+  Copy,
+  Check,
+  User,
+  Building2,
+  FolderGit2,
+  GraduationCap,
+  Award,
+  BookOpen,
+  Trophy,
+  Languages,
+  ChevronsUpDown,
 } from "lucide-react";
 
 // ============================================================
@@ -168,6 +184,36 @@ const pdfStyles = StyleSheet.create({
 });
 
 // ============================================================
+// SECTION CONFIGURATION & THEMES
+// ============================================================
+const SECTION_CONFIG: Record<
+  string,
+  { label: string; color: string; bg: string; icon: React.ElementType }
+> = {
+  header: { label: "Header", color: "#8b5cf6", bg: "rgba(139, 92, 246, 0.15)", icon: User },
+  summary: { label: "Summary", color: "#a855f7", bg: "rgba(168, 85, 247, 0.15)", icon: FileText },
+  skills: { label: "Skills", color: "#6366f1", bg: "rgba(99, 102, 241, 0.15)", icon: Sparkles },
+  experience: { label: "Experience", color: "#3b82f6", bg: "rgba(59, 130, 246, 0.15)", icon: Briefcase },
+  internships: { label: "Internships", color: "#06b6d4", bg: "rgba(6, 182, 212, 0.15)", icon: Building2 },
+  projects: { label: "Projects", color: "#14b8a6", bg: "rgba(20, 184, 166, 0.15)", icon: FolderGit2 },
+  education: { label: "Education", color: "#10b981", bg: "rgba(16, 185, 129, 0.15)", icon: GraduationCap },
+  certifications: { label: "Certifications", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)", icon: Award },
+  training: { label: "Training", color: "#f97316", bg: "rgba(249, 115, 22, 0.15)", icon: BookOpen },
+  achievements: { label: "Achievements", color: "#f43f5e", bg: "rgba(244, 63, 94, 0.15)", icon: Trophy },
+  languages: { label: "Languages", color: "#ec4899", bg: "rgba(236, 72, 153, 0.15)", icon: Languages },
+  professionalLinks: { label: "Links", color: "#0ea5e9", bg: "rgba(14, 165, 233, 0.15)", icon: ExternalLink },
+};
+
+const getSectionCount = (data: any, key: string): string => {
+  const val = data?.[key];
+  if (!val) return "";
+  if (Array.isArray(val)) return `${val.length} item${val.length === 1 ? "" : "s"}`;
+  if (typeof val === "object") return `${Object.keys(val).length} fields`;
+  if (typeof val === "string") return `${val.length} chars`;
+  return "";
+};
+
+// ============================================================
 // INITIAL DATA
 // ============================================================
 const INITIAL_RESUME_DATA = {
@@ -178,8 +224,8 @@ const INITIAL_RESUME_DATA = {
     contact:
       "Hyderabad, India | Phone:7036285961 | Email: eswar.crypto.tech@gmail.com",
     links: {
-      linkedin: "https://linkedin.com/in/eswararaobeta",
-      github: "https://github.com/eswararaobeta",
+      linkedin: "https://www.linkedin.com/in/eswar-me/",
+      github: "https://github.com/WizardGeeky",
       portfolio: "https://eswarb.vercel.app",
     },
   },
@@ -254,11 +300,66 @@ const INITIAL_RESUME_DATA = {
       techStack: "Spring Boot, React, MySQL, Docker, AWS",
     },
   ],
-  education: {
-    college: "JNTUGV",
-    degree: "B.Tech in Information Technology",
-    duration: "2020-2023",
-  },
+  education: [
+    {
+      college: "JNTUGV",
+      degree: "B.Tech in Information Technology",
+      duration: "2020-2023",
+    },
+  ],
+  certifications: [
+    {
+      name: "AWS Certified Solutions Architect – Associate",
+      issuer: "Amazon Web Services",
+      date: "2024",
+      link: "https://aws.amazon.com/verification",
+    },
+  ],
+  internships: [
+    {
+      company: "Cognizant",
+      role: "Software Engineer Intern",
+      duration: "Jan 2023 - Jun 2023",
+      link: "https://cognizant.com",
+      points: [
+        "Assisted in developing REST APIs using Java and Spring Boot for banking modules.",
+        "Wrote unit and integration tests using JUnit and Mockito to ensure code reliability.",
+      ],
+      techStack: "Java, Spring Boot, MySQL, Git",
+    },
+  ],
+  achievements: [
+    {
+      title: "Smart India Hackathon Finalist",
+      issuer: "Ministry of Education",
+      year: "2023",
+      points: [
+        "Developed an automated grievance redressal workflow selected among top 30 teams nationwide.",
+      ],
+    },
+  ],
+  training: [
+    {
+      name: "Microservices & Distributed Systems Bootcamp",
+      organization: "Udemy",
+      duration: "2024",
+      points: [
+        "Hands-on architectural design for event-driven systems using Apache Kafka, Spring Cloud, and Docker.",
+      ],
+    },
+  ],
+  languages: [
+    { language: "English", proficiency: "Professional Working Proficiency" },
+    { language: "Telugu", proficiency: "Native" },
+    { language: "Hindi", proficiency: "Conversational" },
+  ],
+  professionalLinks: [
+    { name: "GitHub", url: "https://github.com/WizardGeeky" },
+    { name: "LinkedIn", url: "https://www.linkedin.com/in/eswar-me/" },
+    { name: "Portfolio", url: "https://eswarb.vercel.app" },
+    { name: "LeetCode", url: "https://leetcode.com/WizardGeeky" },
+    { name: "HackerRank", url: "https://hackerrank.com/WizardGeeky" },
+  ],
 };
 
 // ============================================================
@@ -278,19 +379,85 @@ const SectionHeader = ({ title }: { title: string }) => (
   </>
 );
 
-const ResumeDocument = ({ data }: { data: any }) => {
-  const hasSummary = !!data.summary?.trim();
-  const hasSkills = Array.isArray(data.skills) && data.skills.length > 0;
-  const hasExperience = Array.isArray(data.experience) && data.experience.length > 0;
-  const hasProjects = Array.isArray(data.projects) && data.projects.length > 0;
+const ResumeDocument = ({
+  data,
+  hiddenSections = [],
+}: {
+  data: any;
+  hiddenSections?: string[];
+}) => {
+  const isHidden = (key: string) => hiddenSections.includes(key);
+
+  const hasHeader = !isHidden("header");
+  const hasSummary = !isHidden("summary") && !!data.summary?.trim();
+  const hasSkills = !isHidden("skills") && Array.isArray(data.skills) && data.skills.length > 0;
+  const hasExperience = !isHidden("experience") && Array.isArray(data.experience) && data.experience.length > 0;
+
+  const internshipsList: any[] = Array.isArray(data.internships)
+    ? data.internships
+    : data.internships
+    ? [data.internships]
+    : [];
+  const hasInternships = !isHidden("internships") && internshipsList.length > 0;
+
+  const hasProjects = !isHidden("projects") && Array.isArray(data.projects) && data.projects.length > 0;
+  const educationList: any[] = Array.isArray(data.education)
+    ? data.education
+    : data.education
+    ? [data.education]
+    : [];
   const hasEducation =
-    data.education &&
-    (data.education.college || data.education.degree || data.education.duration);
+    !isHidden("education") &&
+    educationList.length > 0 &&
+    educationList.some((edu: any) => edu && (edu.college || edu.degree || edu.duration));
+
+  const certificationsList: any[] = Array.isArray(data.certifications)
+    ? data.certifications
+    : data.certifications
+    ? [data.certifications]
+    : [];
+  const hasCertifications = !isHidden("certifications") && certificationsList.length > 0;
+
+  const rawTraining = data.training || data.workshops || data.trainingWorkshops || data.trainings;
+  const trainingList: any[] = Array.isArray(rawTraining)
+    ? rawTraining
+    : rawTraining
+    ? [rawTraining]
+    : [];
+  const hasTraining = !isHidden("training") && trainingList.length > 0;
+
+  const rawAchievements = data.achievements || data.achievementsAwards || data.awards;
+  const achievementsList: any[] = Array.isArray(rawAchievements)
+    ? rawAchievements
+    : rawAchievements
+    ? [rawAchievements]
+    : [];
+  const hasAchievements = !isHidden("achievements") && achievementsList.length > 0;
+
+  const rawLanguages = data.languages || data.language;
+  const languagesList: any[] = Array.isArray(rawLanguages)
+    ? rawLanguages
+    : rawLanguages
+    ? [rawLanguages]
+    : [];
+  const hasLanguages = !isHidden("languages") && languagesList.length > 0;
+
+  const rawLinks = data.professionalLinks;
+  const professionalLinksList: any[] = Array.isArray(rawLinks)
+    ? rawLinks
+    : rawLinks && typeof rawLinks === "object"
+    ? Object.entries(rawLinks).map(([k, v]) => ({
+        name: k.charAt(0).toUpperCase() + k.slice(1),
+        url: v,
+      }))
+    : [];
+  const hasProfessionalLinks = !isHidden("professionalLinks") && professionalLinksList.length > 0;
 
   return (
     <Document>
       <Page size="A4" style={pdfStyles.page}>
-        {/* Header — always shown */}
+        {/* Header — shown unless hidden */}
+        {hasHeader && (
         <View style={pdfStyles.header}>
           <Text style={pdfStyles.nameText}>{data.header?.name || "Your Name"}</Text>
           <Separator />
@@ -308,6 +475,7 @@ const ResumeDocument = ({ data }: { data: any }) => {
             )}
           </Text>
         </View>
+        )}
 
         {/* Summary — only if present */}
         {hasSummary && (
@@ -357,6 +525,42 @@ const ResumeDocument = ({ data }: { data: any }) => {
           </View>
         )}
 
+        {/* Internships — only if present */}
+        {hasInternships && (
+          <View style={pdfStyles.section}>
+            <SectionHeader title="INTERNSHIPS" />
+            {internshipsList.map((intern: any, i: number) => {
+              const points = Array.isArray(intern.points)
+                ? intern.points
+                : Array.isArray(intern.responsibilities)
+                ? intern.responsibilities
+                : [];
+              const tech = intern.techStack || intern.technologies;
+              return (
+                <View key={i} style={{ marginTop: i > 0 ? 8 : 0 }}>
+                  <View style={pdfStyles.experienceContent}>
+                    <Text style={pdfStyles.projectName}>
+                      {intern.role} | {intern.company}
+                      {intern.link && (
+                        <Text style={{ fontWeight: "normal" }}>
+                          {" | "}<Link src={intern.link} style={pdfStyles.link}>Project Link</Link>
+                        </Text>
+                      )}
+                    </Text>
+                    <Text>{intern.duration}</Text>
+                  </View>
+                  {points.map((p: string, j: number) => p && <BulletPoint key={j} text={p} />)}
+                  {tech && (
+                    <Text style={pdfStyles.techStackLabel}>
+                      Tech Stack: <Text style={pdfStyles.techStackValue}>{tech}</Text>
+                    </Text>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {/* Projects — only if present */}
         {hasProjects && (
           <View style={pdfStyles.section}>
@@ -389,13 +593,155 @@ const ResumeDocument = ({ data }: { data: any }) => {
         {hasEducation && (
           <View style={pdfStyles.section}>
             <SectionHeader title="EDUCATION" />
-            <View style={pdfStyles.experienceContent}>
-              <View style={{ flex: 1 }}>
-                <Text style={pdfStyles.projectName}>{data.education?.college}</Text>
-                <Text style={pdfStyles.educationDegree}>{data.education?.degree}</Text>
+            {educationList.map((edu: any, i: number) => (
+              <View key={i} style={{ marginTop: i > 0 ? 5 : 0 }}>
+                <View style={pdfStyles.experienceContent}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={pdfStyles.projectName}>{edu.college}</Text>
+                    <Text style={pdfStyles.educationDegree}>{edu.degree}</Text>
+                  </View>
+                  <Text>{edu.duration}</Text>
+                </View>
               </View>
-              <Text>{data.education?.duration}</Text>
-            </View>
+            ))}
+          </View>
+        )}
+
+        {/* Certifications — only if present */}
+        {hasCertifications && (
+          <View style={pdfStyles.section}>
+            <SectionHeader title="CERTIFICATIONS" />
+            {certificationsList.map((cert: any, i: number) => {
+              const name = cert.name || cert.title || cert.certification;
+              const issuer = cert.issuer || cert.organization || cert.issuingOrganization;
+              const link = cert.link || cert.credentialUrl || cert.url;
+              const date = cert.date || cert.issueDate;
+              return (
+                <View key={i} style={{ marginTop: i > 0 ? 5 : 0 }}>
+                  <View style={pdfStyles.experienceContent}>
+                    <Text style={pdfStyles.projectName}>
+                      {name}
+                      {issuer ? <Text style={{ fontWeight: "normal" }}>{` | ${issuer}`}</Text> : null}
+                      {link ? (
+                        <Text style={{ fontWeight: "normal" }}>
+                          {" | "}<Link src={link} style={pdfStyles.link}>Credential</Link>
+                        </Text>
+                      ) : null}
+                    </Text>
+                    {date ? <Text>{date}</Text> : null}
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Training & Workshops — only if present */}
+        {hasTraining && (
+          <View style={pdfStyles.section}>
+            <SectionHeader title="TRAINING & WORKSHOPS" />
+            {trainingList.map((item: any, i: number) => {
+              if (typeof item === "string") {
+                return <BulletPoint key={i} text={item} />;
+              }
+              const name = item.name || item.title || item.program;
+              const org = item.organization || item.institution || item.provider;
+              const duration = item.duration || item.date || item.year;
+              const link = item.link || item.url;
+              const points = Array.isArray(item.points)
+                ? item.points
+                : item.description
+                ? [item.description]
+                : [];
+              return (
+                <View key={i} style={{ marginTop: i > 0 ? 5 : 0 }}>
+                  <View style={pdfStyles.experienceContent}>
+                    <Text style={pdfStyles.projectName}>
+                      {name}
+                      {org ? <Text style={{ fontWeight: "normal" }}>{` | ${org}`}</Text> : null}
+                      {link ? (
+                        <Text style={{ fontWeight: "normal" }}>
+                          {" | "}<Link src={link} style={pdfStyles.link}>Link</Link>
+                        </Text>
+                      ) : null}
+                    </Text>
+                    {duration ? <Text>{duration}</Text> : null}
+                  </View>
+                  {points.map((p: string, j: number) => p && <BulletPoint key={j} text={p} />)}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Achievements & Awards — only if present */}
+        {hasAchievements && (
+          <View style={pdfStyles.section}>
+            <SectionHeader title="ACHIEVEMENTS & AWARDS" />
+            {achievementsList.map((ach: any, i: number) => {
+              if (typeof ach === "string") {
+                return <BulletPoint key={i} text={ach} />;
+              }
+              const title = ach.title || ach.name || ach.award;
+              const issuer = ach.issuer || ach.organization || ach.competition;
+              const year = ach.year || ach.date;
+              const points = Array.isArray(ach.points)
+                ? ach.points
+                : ach.description
+                ? [ach.description]
+                : [];
+              return (
+                <View key={i} style={{ marginTop: i > 0 ? 5 : 0 }}>
+                  <View style={pdfStyles.experienceContent}>
+                    <Text style={pdfStyles.projectName}>
+                      {title}
+                      {issuer ? <Text style={{ fontWeight: "normal" }}>{` | ${issuer}`}</Text> : null}
+                    </Text>
+                    {year ? <Text>{year}</Text> : null}
+                  </View>
+                  {points.map((p: string, j: number) => p && <BulletPoint key={j} text={p} />)}
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Languages — only if present */}
+        {hasLanguages && (
+          <View style={pdfStyles.section}>
+            <SectionHeader title="LANGUAGES" />
+            {languagesList.map((lang: any, i: number) => {
+              if (typeof lang === "string") {
+                return (
+                  <Text key={i} style={pdfStyles.skillsContent}>
+                    {lang}
+                  </Text>
+                );
+              }
+              const name = lang.language || lang.name || "";
+              const level = lang.proficiency || lang.level || "";
+              return (
+                <Text key={i} style={pdfStyles.skillsContent}>
+                  {name}{level ? <Text>: <Text style={pdfStyles.listOfSkills}>{level}</Text></Text> : ""}
+                </Text>
+              );
+            })}
+          </View>
+        )}
+
+        {/* Professional Links — only if present */}
+        {hasProfessionalLinks && (
+          <View style={pdfStyles.section}>
+            <SectionHeader title="PROFESSIONAL LINKS" />
+            {professionalLinksList.map((item: any, i: number) => {
+              const name = item.name || item.label || "Link";
+              const url = item.url || item.link;
+              return (
+                <Text key={i} style={pdfStyles.skillsContent}>
+                  {name}: {url ? <Link src={url} style={pdfStyles.link}>{url}</Link> : ""}
+                </Text>
+              );
+            })}
           </View>
         )}
       </Page>
@@ -416,6 +762,101 @@ export default function Home() {
   const [jsonInput, setJsonInput] = useState(JSON.stringify(INITIAL_RESUME_DATA, null, 2));
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Hidden sections in PDF resume (hide and show)
+  const [hiddenSections, setHiddenSections] = useState<string[]>([]);
+  // Active/highlighted section
+  const [activeSection, setActiveSection] = useState<string>("header");
+  // Active line in code mode
+  const [activeLine, setActiveLine] = useState<number>(1);
+  // Copied state
+  const [copied, setCopied] = useState<boolean>(false);
+  // Highlight pulse animation trigger
+  const [highlightPulse, setHighlightPulse] = useState<string | null>(null);
+
+  // References
+  const fullTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const gutterRef = useRef<HTMLDivElement>(null);
+
+  const lines = useMemo(() => jsonInput.split("\n"), [jsonInput]);
+
+  const sectionLineRanges = useMemo(() => {
+    const allLines = jsonInput.split("\n");
+    const ranges: Record<string, { start: number; end: number }> = {};
+    const keys = Object.keys(SECTION_CONFIG);
+    let currentKey: string | null = null;
+    let currentStart = 0;
+
+    for (let i = 0; i < allLines.length; i++) {
+      const line = allLines[i];
+      for (const key of keys) {
+        const regex = new RegExp(`^\\s*"${key}"\\s*:`);
+        if (regex.test(line)) {
+          if (currentKey) {
+            ranges[currentKey] = { start: currentStart, end: i - 1 };
+          }
+          currentKey = key;
+          currentStart = i;
+          break;
+        }
+      }
+    }
+    if (currentKey) {
+      ranges[currentKey] = { start: currentStart, end: allLines.length - 1 };
+    }
+    return ranges;
+  }, [jsonInput]);
+
+  const getSectionForLine = useCallback(
+    (lineIdx: number): string | null => {
+      for (const [key, range] of Object.entries(sectionLineRanges) as [string, { start: number; end: number }][]) {
+        if (lineIdx >= range.start && lineIdx <= range.end) {
+          return key;
+        }
+      }
+      return null;
+    },
+    [sectionLineRanges]
+  );
+
+  const toggleSectionVisibility = (key: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setHiddenSections((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const handleFormatJson = () => {
+    try {
+      const parsed = JSON.parse(jsonInput);
+      const formatted = JSON.stringify(parsed, null, 2);
+      setJsonInput(formatted);
+      setResumeData(parsed);
+      setJsonError(null);
+    } catch {
+      // Keep existing if invalid
+    }
+  };
+
+  const handleCopyJson = () => {
+    navigator.clipboard.writeText(jsonInput);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const scrollToSection = (key: string) => {
+    setActiveSection(key);
+    setHighlightPulse(key);
+    setTimeout(() => setHighlightPulse(null), 1600);
+
+    const range = sectionLineRanges[key];
+    if (range && fullTextareaRef.current) {
+      fullTextareaRef.current.scrollTop = Math.max(0, range.start * 20);
+      if (gutterRef.current) {
+        gutterRef.current.scrollTop = Math.max(0, range.start * 20);
+      }
+    }
+  };
 
   // Welcome modal
   const [showWelcome, setShowWelcome] = useState(false);
@@ -821,7 +1262,7 @@ export default function Home() {
             <div className="absolute inset-0 rounded-xl bg-linear-to-br from-white/20 to-transparent" />
           </div>
           <div>
-            <span className="font-bold text-white text-sm leading-none bg-linear-to-r from-violet-300 to-purple-300 bg-clip-text text-transparent">
+            <span className="font-bold text-white text-sm leading-none bg-linear-to-r from-violet-300 to-purple-300 bg-clip-text">
               Resume Maker
             </span>
             <span className="block text-violet-500 text-[10px] leading-none mt-0.5 font-medium">
@@ -843,54 +1284,267 @@ export default function Home() {
       {/* ══════════ MAIN LAYOUT ═══════════════════════════ */}
       <div className="flex-1 flex overflow-hidden">
 
-        {/* ── Left Panel: JSON Editor ── */}
-        <div className="w-1/2 flex flex-col bg-[#0D0B1A] border-r border-violet-500/10">
+        {/* ── Left Panel: Full Code JSON Editor ── */}
+        <div className="w-1/2 flex flex-col bg-[#0D0B1A] border-r border-violet-500/10 overflow-hidden">
           {/* Panel header */}
-          <div className="flex-shrink:0 flex items-center justify-between px-5 py-3 border-b border-violet-500/10 bg-linear-to-r from-violet-900/20 to-purple-900/10">
-            <div className="flex items-center gap-2.5">
+          <div className="flex-shrink:0 flex items-center justify-between px-5 py-3 border-b border-violet-500/10 bg-linear-to-r from-violet-900/25 via-[#110D24] to-purple-900/15">
+            <div className="flex items-center gap-3">
               <div className="flex gap-1">
                 <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
                 <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
               </div>
-              <span className="text-sm font-semibold text-neutral-300">JSON Data</span>
-              {jsonError && (
-                <span className="flex items-center gap-1 text-xs text-red-400 bg-red-900/30 border border-red-500/20 px-2 py-0.5 rounded-full">
-                  <AlertCircle className="w-3 h-3" /> Invalid JSON
+              <span className="text-sm font-bold text-white tracking-wide">
+                JSON Editor
+              </span>
+
+              {jsonError ? (
+                <span className="flex items-center gap-1 text-[11px] text-red-400 bg-red-950/50 border border-red-500/30 px-2.5 py-0.5 rounded-full">
+                  <AlertCircle className="w-3 h-3" /> Syntax Error
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                  <CheckCircle2 className="w-3 h-3" /> Valid
                 </span>
               )}
             </div>
 
-            {/* Ask AI Button */}
-            <button
-              onClick={() => { setShowAiModal(true); setAiError(null); }}
-              className="group relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-white text-xs font-semibold overflow-hidden shadow-lg shadow-violet-900/50 transition-all hover:shadow-violet-700/50 active:scale-95"
-            >
-              <div className="absolute inset-0 bg-linear-to-r from-violet-600 via-purple-600 to-indigo-600 transition-opacity" />
-              <div className="absolute inset-0 bg-linear-to-r from-violet-500 via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <Zap className="relative w-3.5 h-3.5" />
-              <span className="relative">Ask AI</span>
-            </button>
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-2">
+              {/* Format JSON */}
+              <button
+                type="button"
+                onClick={handleFormatJson}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white text-xs font-medium transition-all border border-white/5 cursor-pointer"
+                title="Format / Prettify JSON"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Format</span>
+              </button>
+
+              {/* Copy JSON */}
+              <button
+                type="button"
+                onClick={handleCopyJson}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 text-xs font-medium transition-all border border-white/5 cursor-pointer"
+                title="Copy entire JSON to clipboard"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400 text-xs">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-neutral-400" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+
+              {/* Ask AI Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAiModal(true);
+                  setAiError(null);
+                }}
+                className="group relative flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-white text-xs font-semibold overflow-hidden shadow-lg shadow-violet-900/50 transition-all hover:shadow-violet-700/50 active:scale-95 cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-linear-to-r from-violet-600 via-purple-600 to-indigo-600 transition-opacity" />
+                <div className="absolute inset-0 bg-linear-to-r from-violet-500 via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Zap className="relative w-3.5 h-3.5" />
+                <span className="relative">Ask AI</span>
+              </button>
+            </div>
           </div>
 
-          {/* Textarea */}
-          <textarea
-            className="flex-1 w-full px-5 py-4 font-mono text-xs leading-relaxed bg-[#0B0918] text-violet-100/80 outline-none resize-none placeholder-neutral-700 selection:bg-violet-900/60 caret-violet-400"
-            value={jsonInput}
-            onChange={handleJsonChange}
-            spellCheck={false}
-          />
+          {/* ── Section Highlighter & Navigation Ribbon ── */}
+          <div className="flex-shrink:0 px-3 py-2 border-b border-violet-500/10 bg-[#0A0817] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider px-1 shrink-0">
+              Sections:
+            </span>
+            {Object.entries(SECTION_CONFIG).map(([key, cfg]) => {
+              const isAct = activeSection === key;
+              const isHidden = hiddenSections.includes(key);
+              const count = getSectionCount(resumeData, key);
+
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-all shrink-0 border",
+                    isAct
+                      ? "bg-violet-900/40 text-white shadow-sm"
+                      : "bg-white/3 text-neutral-400 hover:text-neutral-200 hover:bg-white/6",
+                    isHidden && "opacity-50 line-through"
+                  )}
+                  style={{
+                    borderColor: isAct ? cfg.color : "rgba(255,255,255,0.06)",
+                  }}
+                  onClick={() => scrollToSection(key)}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: cfg.color }}
+                  />
+                  <span>{cfg.label}</span>
+                  {count && (
+                    <span className="text-[10px] text-neutral-500">({count})</span>
+                  )}
+
+                  {/* Eye Hide/Show toggle button */}
+                  <button
+                    type="button"
+                    onClick={(e) => toggleSectionVisibility(key, e)}
+                    title={
+                      isHidden
+                        ? "Hidden in PDF - click to show"
+                        : "Visible in PDF - click to hide"
+                    }
+                    className={cn(
+                      "ml-0.5 p-0.5 rounded hover:bg-white/10 transition-colors cursor-pointer",
+                      isHidden ? "text-amber-400" : "text-neutral-500 hover:text-white"
+                    )}
+                  >
+                    {isHidden ? (
+                      <EyeOff className="w-3 h-3" />
+                    ) : (
+                      <Eye className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Active section info banner ── */}
+          <div className="flex-shrink:0 px-4 py-1.5 bg-[#090715] border-b border-violet-500/10 flex items-center justify-between text-xs text-neutral-400">
+            <div className="flex items-center gap-2">
+              {SECTION_CONFIG[activeSection] && (
+                <>
+                  <span
+                    className="w-2 h-2 rounded-full animate-pulse"
+                    style={{ backgroundColor: SECTION_CONFIG[activeSection].color }}
+                  />
+                  <span className="font-semibold text-white">
+                    {SECTION_CONFIG[activeSection].label} Section
+                  </span>
+                  {sectionLineRanges[activeSection] && (
+                    <span className="text-[11px] text-violet-400 font-mono bg-violet-950/60 px-1.5 py-0.5 rounded border border-violet-800/40">
+                      Lines {sectionLineRanges[activeSection].start + 1}–
+                      {sectionLineRanges[activeSection].end + 1}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-neutral-500">
+                    ({getSectionCount(resumeData, activeSection)})
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="text-[11px] text-neutral-500 font-mono">
+              Line {activeLine} of {lines.length}
+            </div>
+          </div>
+
+          {/* ── Full Code Editor with Synchronized Line Numbers ── */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Line numbers gutter */}
+            <div
+              ref={gutterRef}
+              className="w-13 select-none overflow-hidden font-mono text-[11px] leading-5 text-neutral-600 bg-[#070510] py-4 pr-2 text-right border-r border-violet-500/10 shrink-0"
+            >
+              {lines.map((_: string, idx: number) => {
+                const lineNum = idx + 1;
+                const secKey = getSectionForLine(idx);
+                const config = secKey ? SECTION_CONFIG[secKey] : null;
+
+                return (
+                  <div
+                    key={idx}
+                    className="relative flex items-center justify-end h-5 group"
+                  >
+                    {/* Section color bar on left */}
+                    {config && (
+                      <span
+                        className="absolute left-1 w-1 h-3.5 rounded-full transition-all"
+                        style={{
+                          backgroundColor: config.color,
+                          opacity: activeSection === secKey ? 1 : 0.4,
+                        }}
+                        title={config.label}
+                      />
+                    )}
+                    <span
+                      className={cn(
+                        "transition-colors pr-1 font-mono",
+                        activeLine === lineNum
+                          ? "text-violet-300 font-bold"
+                          : "text-neutral-600 group-hover:text-neutral-400"
+                      )}
+                    >
+                      {lineNum}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Textarea */}
+            <textarea
+              ref={fullTextareaRef}
+              value={jsonInput}
+              onChange={handleJsonChange}
+              onScroll={() => {
+                if (fullTextareaRef.current && gutterRef.current) {
+                  gutterRef.current.scrollTop = fullTextareaRef.current.scrollTop;
+                }
+                if (fullTextareaRef.current) {
+                  const lineIdx = Math.floor(fullTextareaRef.current.scrollTop / 20);
+                  const curSec = getSectionForLine(lineIdx);
+                  if (curSec) setActiveSection(curSec);
+                }
+              }}
+              onKeyUp={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                const currentPos = target.selectionStart;
+                const lineNum = target.value.substring(0, currentPos).split("\n").length;
+                setActiveLine(lineNum);
+                const sec = getSectionForLine(lineNum - 1);
+                if (sec) setActiveSection(sec);
+              }}
+              onClick={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                const currentPos = target.selectionStart;
+                const lineNum = target.value.substring(0, currentPos).split("\n").length;
+                setActiveLine(lineNum);
+                const sec = getSectionForLine(lineNum - 1);
+                if (sec) setActiveSection(sec);
+              }}
+              className="flex-1 w-full px-4 py-4 font-mono text-xs leading-5 bg-[#0B0918] text-violet-100/90 outline-none resize-none placeholder-neutral-700 selection:bg-violet-900/60 caret-violet-400 overflow-y-auto whitespace-pre font-normal"
+              spellCheck={false}
+            />
+          </div>
 
           {/* Footer hint */}
           <div className="flex-shrink:0 px-5 py-2 border-t border-violet-500/10 bg-violet-900/10 flex items-center justify-between">
-            <span className="text-neutral-600 text-xs">Edit JSON → resume updates live</span>
+            <div className="flex items-center gap-3">
+              <span className="text-neutral-500 text-xs font-mono">
+                {lines.length} lines · {Object.keys(SECTION_CONFIG).length} sections
+              </span>
+              {hiddenSections.length > 0 && (
+                <span className="text-[11px] text-amber-400 font-medium">
+                  {hiddenSections.length} section{hiddenSections.length === 1 ? "" : "s"} hidden from PDF
+                </span>
+              )}
+            </div>
             {!jsonError ? (
               <span className="flex items-center gap-1 text-xs text-emerald-400 font-medium">
-                <CheckCircle2 className="w-3 h-3" /> Valid
+                <CheckCircle2 className="w-3 h-3" /> Live Sync Active
               </span>
             ) : (
               <span className="flex items-center gap-1 text-xs text-red-400 font-medium">
-                <AlertCircle className="w-3 h-3" /> Error
+                <AlertCircle className="w-3 h-3" /> Syntax Error
               </span>
             )}
           </div>
@@ -914,7 +1568,7 @@ export default function Home() {
           <div className="flex-1 overflow-hidden">
             {pdfReady ? (
               <PDFViewer className="w-full h-full">
-                <ResumeDocument data={resumeData} />
+                <ResumeDocument data={resumeData} hiddenSections={hiddenSections} />
               </PDFViewer>
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-violet-900">
